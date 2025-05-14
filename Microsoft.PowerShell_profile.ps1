@@ -1,7 +1,83 @@
-### PowerShell Profile Refactor
-### Version 1.03 - Refactored
+# ╭─────────────────────────────────────╮
+# │ ╭─────────────────────────────────╮ │
+# │ │PowerShell 7.x Profile - Windows │ │
+# │ ╰─────────────────────────────────╯ │
+# ╰─────────────────────────────────────╯
 
+# Global Variables
+# Set the debug mode to true for development purposes
 $debug = $false
+
+# ╭───────────────────────────────────────────╮
+# │ Helper Function: Print-RBox(string)       │
+# │                  RBox a Multi-Line String │
+# ╰───────────────────────────────────────────╯
+function Print-RBox {
+    param (
+        [string]$Text
+    )
+
+    # Handle the multiple lines split
+    $Lines = $Text -split "`n"
+
+    # Calculate the number of lines
+    $LinesCount = $Lines.Count
+
+    # Calculate the maximum length of the lines to adjust the box size
+    $MaxLength = 0
+    $MaxLength = $Lines | Measure-Object -Maximum Length | Select-Object -ExpandProperty Maximum
+    # foreach ($Line in $Lines) {
+    #     if ($Line.Length -gt $MaxLength) {
+    #         $MaxLength = $Line.Length
+    #     }
+    # }
+
+    # Calculate the number of spaces needed for the box
+    $Spaces = ($MaxLength + 2)
+
+    # Print the top border
+    Write-Host "$($PSStyle.Foreground.Cyan)╭" -NoNewline
+    Write-Host "$($PSStyle.Foreground.Cyan)$("─" * ($MaxLength + 2))" -NoNewline
+    Write-Host "╮$($PSStyle.Reset)"
+
+    #Print the lines inside the box
+    foreach ($Line in $Lines) {
+        Write-Host "$($PSStyle.Foreground.Cyan)│ $($PSStyle.Reset)" -NoNewline
+        Write-Host ($Line.PadRight($MaxLength)) -NoNewline
+        Write-Host "$($PSStyle.Foreground.Cyan) │$($PSStyle.Reset)"
+    }
+    # Print the bottom border
+    Write-Host "$($PSStyle.Foreground.Cyan)╰" -NoNewline
+   Write-Host "$($PSStyle.Foreground.Cyan)$("─" * ($MaxLength + 2))" -NoNewline
+    Write-Host "╯$($PSStyle.Reset)"
+}
+
+# ╭──────────────────────────────╮
+# │ Helper Function: Show-Help() │
+# ╰──────────────────────────────╯
+function Show-Help {
+  Print-RBox @"
+PowerShell Profile Help
+Profile: $($PROFILE)
+
+Features: 
+  - Winget argument completer
+  - Az CLI Argument Completer
+  - Choco argument completer
+  
+Aliases & Functions:
+  -  tf:  terraform
+  - tfi: terraform init -upgrade
+  - tfp: terraform plan
+  - tfa: terraform apply -auto-approve
+  - tfd: terraform destroy -auto-approve
+  -   o:   open explorer.exe
+"@
+}
+
+# ╭────────╮
+# │ MAIN() │
+# ╰────────╯
 
 # Define the path to the file that stores the last execution time
 $timeFilePath = [Environment]::GetFolderPath("MyDocuments") + "\PowerShell\LastExecutionTime.txt"
@@ -10,33 +86,9 @@ $timeFilePath = [Environment]::GetFolderPath("MyDocuments") + "\PowerShell\LastE
 $updateInterval = 7
 
 if ($debug) {
-    Write-Host "#######################################" -ForegroundColor Red
-    Write-Host "#           Debug mode enabled        #" -ForegroundColor Red
-    Write-Host "#          ONLY FOR DEVELOPMENT       #" -ForegroundColor Red
-    Write-Host "#                                     #" -ForegroundColor Red
-    Write-Host "#       IF YOU ARE NOT DEVELOPING     #" -ForegroundColor Red
-    Write-Host "#       JUST RUN \`Update-Profile\`     #" -ForegroundColor Red
-    Write-Host "#        to discard all changes       #" -ForegroundColor Red
-    Write-Host "#   and update to the latest profile  #" -ForegroundColor Red
-    Write-Host "#               version               #" -ForegroundColor Red
-    Write-Host "#######################################" -ForegroundColor Red
+    Print-RBox "$($PSStyle.Foreground.Red)Debug mode enabled"
+    Print-RBox "$($PSStyle.Foreground.Red)Profile: $($PROFILE)"
 }
-
-
-#################################################################################################################################
-############                                                                                                         ############
-############                                          !!!   WARNING:   !!!                                           ############
-############                                                                                                         ############
-############                DO NOT MODIFY THIS FILE. THIS FILE IS HASHED AND UPDATED AUTOMATICALLY.                  ############
-############                    ANY CHANGES MADE TO THIS FILE WILL BE OVERWRITTEN BY COMMITS TO                      ############
-############                       https://github.com/ChrisTitusTech/powershell-profile.git.                         ############
-############                                                                                                         ############
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
-############                                                                                                         ############
-############                      IF YOU WANT TO MAKE CHANGES, USE THE Edit-Profile FUNCTION                         ############
-############                              AND SAVE YOUR CHANGES IN THE FILE CREATED.                                 ############
-############                                                                                                         ############
-#################################################################################################################################
 
 #opt-out of telemetry before doing anything, only if PowerShell is run as admin
 if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) {
@@ -46,12 +98,30 @@ if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) 
 # Initial GitHub.com connectivity check with 1 second timeout
 $global:canConnectToGitHub = Test-Connection github.com -Count 1 -Quiet -TimeoutSeconds 1
 
-# Import Modules and External Profiles
-# Ensure Terminal-Icons module is installed before importing
+# ╭────────────────────────────────────────────────────────────╮
+# │ Ensure Terminal-Icons module is installed before importing │
+# ╰────────────────────────────────────────────────────────────╯
 if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
+  try {
     Install-Module -Name Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
+  } catch {
+    if ($debug) {
+      Print-RBox "$($PSStyle.Foreground.Red)Failed to install Terminal-Icons module. Error: $_"
+    }
+  }
+} else {
+  try {
+    Import-Module -Name Terminal-Icons -Force
+  } catch {
+    if ($debug) {
+      Print-RBox "$($PSStyle.Foreground.Red)Failed to import Terminal-Icons module. Error: $_"
+    }
+  }
 }
-Import-Module -Name Terminal-Icons
+
+# ╭──────────────────────────────────────────────────╮
+# │ Import the $ChocolateyProfile PSM1 if available  │
+# ╰──────────────────────────────────────────────────╯
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
     Import-Module "$ChocolateyProfile"
@@ -396,7 +466,7 @@ function gc { param($m) git commit -m "$m" }
 
 function gp { git push }
 
-function g { __zoxide_z github }
+# function g { __zoxide_z github }
 
 function gcl { git clone "$args" }
 
@@ -515,19 +585,19 @@ function Get-Theme {
 }
 
 ## Final Line to set prompt
-Get-Theme
-if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& { (zoxide init --cmd cd powershell | Out-String) })
-} else {
-    Write-Host "zoxide command not found. Attempting to install via winget..."
-    try {
-        winget install -e --id ajeetdsouza.zoxide
-        Write-Host "zoxide installed successfully. Initializing..."
-        Invoke-Expression (& { (zoxide init powershell | Out-String) })
-    } catch {
-        Write-Error "Failed to install zoxide. Error: $_"
-    }
-}
+# Get-Theme
+# if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+#     Invoke-Expression (& { (zoxide init --cmd cd powershell | Out-String) })
+# } else {
+#     Write-Host "zoxide command not found. Attempting to install via winget..."
+#     try {
+#         winget install -e --id ajeetdsouza.zoxide
+#         Write-Host "zoxide installed successfully. Initializing..."
+#         Invoke-Expression (& { (zoxide init powershell | Out-String) })
+#     } catch {
+#         Write-Error "Failed to install zoxide. Error: $_"
+#     }
+# }
 
 Set-Alias -Name z -Value __zoxide_z -Option AllScope -Scope Global -Force
 Set-Alias -Name zi -Value __zoxide_zi -Option AllScope -Scope Global -Force

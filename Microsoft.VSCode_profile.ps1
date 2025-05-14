@@ -4,8 +4,7 @@
 # ╰───────────────────────────────────────────╯
 function Print-RBox {
     param (
-        [string]$Text,
-        [string]$Color = "Green"
+        [string]$Text
     )
 
     # Handle the multiple lines split
@@ -27,20 +26,20 @@ function Print-RBox {
     $Spaces = ($MaxLength + 2)
 
     # Print the top border
-    Write-Host "╭" -ForegroundColor Cyan -NoNewline
-    Write-Host ("─" * ($MaxLength + 2)) -ForegroundColor Cyan -NoNewline
-    Write-Host "╮" -ForegroundColor Cyan
+    Write-Host "$($PSStyle.Foreground.Cyan)╭" -NoNewline
+    Write-Host "$($PSStyle.Foreground.Cyan)$("─" * ($MaxLength + 2))" -NoNewline
+    Write-Host "╮$($PSStyle.Reset)"
 
     #Print the lines inside the box
     foreach ($Line in $Lines) {
-        Write-Host "│ " -ForegroundColor Cyan -NoNewline
-        Write-Host ($Line.PadRight($MaxLength)) -ForegroundColor $Color -NoNewline
-        Write-Host " │" -ForegroundColor Cyan
+        Write-Host "$($PSStyle.Foreground.Cyan)│ $($PSStyle.Reset)" -NoNewline
+        Write-Host ($Line.PadRight($MaxLength)) -NoNewline
+        Write-Host "$($PSStyle.Foreground.Cyan) │$($PSStyle.Reset)"
     }
     # Print the bottom border
-    Write-Host "╰" -ForegroundColor Cyan -NoNewline
-    Write-Host ("─" * ($MaxLength + 2)) -ForegroundColor Cyan -NoNewline
-    Write-Host "╯" -ForegroundColor Cyan
+    Write-Host "$($PSStyle.Foreground.Cyan)╰" -NoNewline
+   Write-Host "$($PSStyle.Foreground.Cyan)$("─" * ($MaxLength + 2))" -NoNewline
+    Write-Host "╯$($PSStyle.Reset)"
 }
 
 # ╭────────────────────────────╮
@@ -56,12 +55,12 @@ Features:
   - Choco argument completer
   
 Aliases & Functions:
-  - tf:  terraform
+  -  tf:  terraform
   - tfi: terraform init -upgrade
   - tfp: terraform plan
   - tfa: terraform apply -auto-approve
   - tfd: terraform destroy -auto-approve
-  - o:   open explorer.exe
+  -   o:   open explorer.exe
 "@
 }
 
