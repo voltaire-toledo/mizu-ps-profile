@@ -2,16 +2,15 @@
 # │ PowerShell 7.x Profile - Windows    │
 # ╰─────────────────────────────────────╯
 
-# ──────────────────────────────
-# REGION: GLOBALS & SETTINGS
-# ──────────────────────────────
-$DebugPreference = 'SilentlyContinue'
-$Global:CanConnectToGitHub = $false
+#region Globals...
+# Set the debug mode.  Use $DebugPreference for more control.
+$DebugPreference = 'SilentlyContinue' # Or: 'Continue', 'Stop', 'Inquire'
+$Global:CanConnectToGitHub = $false # Initialize, will be set in MAIN
+# Admin Check and Prompt Customization
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+#endregion
 
-# ──────────────────────────────
-# REGION: HELPER FUNCTIONS
-# ──────────────────────────────
+#region Helper Functions...
 function Write-RBox {
   <#
     .SYNOPSIS
@@ -76,7 +75,7 @@ function Write-RBox {
   Write-Host "$($PSStyle.Foreground.Cyan)╰$("─" * $($Spaces))$($PSStyle.Foreground.Cyan)╯"
 }
 
-function Show-Help {
+function Show-Features {
   <#
     .SYNOPSIS
         Displays help information for the PowerShell profile.
@@ -164,10 +163,12 @@ $($SecC)Other Functions:
   # Print the help text in a box
   Write-RBox -Text $HelpText
 }
+#endregion
 
-# ──────────────────────────────
-# REGION: PROFILE MANAGEMENT
-# ──────────────────────────────
+#region PSProfile Management...
+# ╭───────────────────────────────────────────────╮
+# │ Update-Profile(): Update $PROFILE from GitHub │
+# ╰───────────────────────────────────────────────╯
 function Update-Profile {
   try {
     $url = "https://raw.githubusercontent.com/ChrisTitusTech/powershell-profile/main/Microsoft.PowerShell_profile.ps1"
@@ -190,24 +191,54 @@ function Update-Profile {
   }
 }
 
-function Edit-Profile { vim $PROFILE.CurrentUserAllHosts }
+# Edit-Profile(): Edit the $PROFILE.CurrentUserAllHosts profile
+function Edit-Profile {
+  vim $PROFILE.CurrentUserAllHosts
+}
 
-function Edit-ThisProfile { vim $PROFILE.CurrentUserCurrentHost }
+# Edit-ThisProfile(): Edit the $PROFILE.CurrentUserAllHosts profile
+function Edit-ThisProfile {
+  vim $PROFILE.CurrentUserCurrentHost
+}
+#endregion
 
-# ──────────────────────────────
-# REGION: UTILITY FUNCTIONS
-# ──────────────────────────────
-function touch($file) { "" | Out-File $file -Encoding ASCII }
-function ff($name) { Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "$($_.FullName)" } }
-function Get-PublicIP { (Invoke-WebRequest http://ifconfig.me/ip).Content }
+#region Aliases & Functions...
+function touch($file) { 
+  # touch -> Create a new empty file
+  "" | Out-File $file -Encoding ASCII 
+}
+
+function ff($name) { 
+  # ff -> Find files recursively
+  Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "$($_.FullName)" } 
+}
+
+function Get-PublicIP { 
+  # Get-PublicIP -> Get the public IP address
+  (Invoke-WebRequest http://ifconfig.me/ip).Content 
+}
+
+function Update-Profile { 
+  # Update-Profile -> Reload the current user's PowerShell profile
+  & $profile 
+}
+
 function uptime {
+  # uptime(): *NIX-style uptime 
+  # uptime(): *NIX-style uptime 
   try {
+    # find date/time format
+    # find date/time format
     $dateFormat = [System.Globalization.CultureInfo]::CurrentCulture.DateTimeFormat.ShortDatePattern
     $timeFormat = [System.Globalization.CultureInfo]::CurrentCulture.DateTimeFormat.LongTimePattern
 		
+    # check powershell version
+    # check powershell version
     if ($PSVersionTable.PSVersion.Major -eq 5) {
       $lastBoot = (Get-WmiObject win32_operatingsystem).LastBootUpTime
       $bootTime = [System.Management.ManagementDateTimeConverter]::ToDateTime($lastBoot)
+
+      # reformat lastBoot
       $lastBoot = $bootTime.ToString("$dateFormat $timeFormat")
     }
     else {
@@ -215,16 +246,22 @@ function uptime {
       $bootTime = [System.DateTime]::ParseExact($lastBoot, "$dateFormat $timeFormat", [System.Globalization.CultureInfo]::InvariantCulture)
     }
 
+    # Format the start time
     $formattedBootTime = $bootTime.ToString("dddd, MMMM dd, yyyy HH:mm:ss", [System.Globalization.CultureInfo]::InvariantCulture) + " [$lastBoot]"
     Write-Host "System started on: $formattedBootTime" -ForegroundColor DarkGray
 
+    # calculate uptime
     $uptime = (Get-Date) - $bootTime
+
+    # Uptime in days, hours, minutes, and seconds
     $days = $uptime.Days
     $hours = $uptime.Hours
     $minutes = $uptime.Minutes
     $seconds = $uptime.Seconds
 
+    # Uptime output
     Write-Host ("Uptime: {0} days, {1} hours, {2} minutes, {3} seconds" -f $days, $hours, $minutes, $seconds) -ForegroundColor Blue
+
   }
   catch {
     Write-Error "An error occurred while retrieving system uptime."
@@ -232,6 +269,7 @@ function uptime {
 }
 
 function Update-PowerShell {
+  # Update-PowerShell(): Update to the latest PowerShell 7.x release
   try {
     Write-Host "Checking for PowerShell updates..." -ForegroundColor Cyan
     $updateNeeded = $false
@@ -258,15 +296,26 @@ function Update-PowerShell {
 }
 
 function Clear-Cache {
+  # Clear-Cache(): Clear Windows Prefetch, Temp and Browser cache contents
+  # add clear cache logic here
   Write-Host "Clearing cache..." -ForegroundColor Cyan
+
+  # Clear Windows Prefetch
   Write-Host "Clearing Windows Prefetch..." -ForegroundColor Yellow
   Remove-Item -Path "$env:SystemRoot\Prefetch\*" -Force -ErrorAction SilentlyContinue
+
+  # Clear Windows Temp
   Write-Host "Clearing Windows Temp..." -ForegroundColor Yellow
   Remove-Item -Path "$env:SystemRoot\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+  # Clear User Temp
   Write-Host "Clearing User Temp..." -ForegroundColor Yellow
   Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+  # Clear Internet Explorer Cache
   Write-Host "Clearing Internet Explorer Cache..." -ForegroundColor Yellow
   Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue
+
   Write-Host "Cache clearing completed." -ForegroundColor Green
 }
 
@@ -275,7 +324,6 @@ function unzip ($file) {
   $fullFile = Get-ChildItem -Path $pwd -Filter $file | ForEach-Object { $_.FullName }
   Expand-Archive -Path $fullFile -DestinationPath $pwd
 }
-
 function hb {
   if ($args.Length -eq 0) {
     Write-Error "No file path specified."
@@ -304,7 +352,6 @@ function hb {
     Write-Error "Failed to upload the document. Error: $_"
   }
 }
-
 function grep($regex, $dir) {
   if ( $dir ) {
     Get-ChildItem $dir | select-string $regex
@@ -347,8 +394,10 @@ function tail {
   Get-Content $Path -Tail $n -Wait:$f
 }
 
+# Quick File Creation
 function nf { param($name) New-Item -ItemType "file" -Path . -Name $name }
 
+# Directory Management
 function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
 
 function trash($path) {
@@ -358,9 +407,11 @@ function trash($path) {
     $item = Get-Item $fullPath
 
     if ($item.PSIsContainer) {
+      # Handle directory
       $parentPath = $item.Parent.FullName
     }
     else {
+      # Handle file
       $parentPath = $item.DirectoryName
     }
 
@@ -380,9 +431,9 @@ function trash($path) {
   }
 }
 
-# ──────────────────────────────
-# REGION: NAVIGATION & QOL
-# ──────────────────────────────
+### Quality of Life Aliases
+
+# Navigation Shortcuts
 function docs { 
   $docs = if (([Environment]::GetFolderPath("MyDocuments"))) { ([Environment]::GetFolderPath("MyDocuments")) } else { $HOME + "\Documents" }
   Set-Location -Path $docs
@@ -393,14 +444,14 @@ function dtop {
   Set-Location -Path $dtop
 }
 
+# Simplified Process Management
 function k9 { Stop-Process -Name $args[0] }
 
+# Enhanced Listing
 function la { Get-ChildItem | Format-Table -AutoSize }
 function ll { Get-ChildItem -Force | Format-Table -AutoSize }
 
-# ──────────────────────────────
-# REGION: GIT SHORTCUTS
-# ──────────────────────────────
+# Git Shortcuts
 function gs { git status }
 
 function ga { git add . }
@@ -415,57 +466,55 @@ function gcom {
   git add .
   git commit -m "$args"
 }
-
 function lazyg {
   git add .
   git commit -m "$args"
   git push
 }
 
-# ──────────────────────────────
-# REGION: SYSTEM & NETWORK
-# ──────────────────────────────
+# Quick Access to System Information
 function sysinfo { Get-ComputerInfo }
 
+# Networking Utilities
 function flushdns {
   Clear-DnsClientCache
   Write-Host "DNS has been flushed"
 }
 
-# ──────────────────────────────
-# REGION: CLIPBOARD & MISC
-# ──────────────────────────────
+# Clipboard Utilities
 function cpy { Set-Clipboard $args[0] }
 
 function pst { Get-Clipboard }
 
-# ──────────────────────────────
-# REGION: TERRAFORM SHORTCUTS
-# ──────────────────────────────
 function tf { terraform $args }
 
 function tfi { terraform init -upgrade $args }
+# set-alias -Name "tfi"  -Value func-tfi
 
 function tfp { terraform plan $args }
+# set-alias -Name "tfp"  -Value func-tfp
 
 function tfa { terraform apply -auto-approve $args }
+# set-alias -Name "tfa"  -Value func-tfa
 
 function tfd { terraform destroy -auto-approve $args }
 
-# ──────────────────────────────
-# REGION: WINDOWS EXPLORER
-# ──────────────────────────────
 function o { explorer.exe $args }
+#endregion
 
-# ──────────────────────────────
-# REGION: MAIN INITIALIZATION
-# ──────────────────────────────
+#region Main()
+# ╭────────────────────────────────╮
+# │ Profile Processing begins here │
+# ╰────────────────────────────────╯
+#opt-out of telemetry before doing anything, only if PowerShell is run as admin
 if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) {
   [System.Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', 'true', [System.EnvironmentVariableTarget]::Machine)
 }
 
+# Initial GitHub.com connectivity check with 1 second timeout
 $global:canConnectToGitHub = Test-Connection github.com -Count 1 -Quiet -TimeoutSeconds 1
 
+# Ensure Terminal-Icons module is installed before importing 
 if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
   try {
     Install-Module -Name Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
@@ -487,29 +536,70 @@ else {
   }
 }
 
+# Import the $ChocolateyProfile PSM1 if available 
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
   Import-Module "$ChocolateyProfile"
 }
 
-# ──────────────────────────────
-# REGION: PSREADLINE & COMPLETION
-# ──────────────────────────────
+
+# function prompt {
+#   if ($isAdmin) { "[" + (Get-Location) + "] # " } else { "[" + (Get-Location) + "] $ " }
+# }
+# $adminSuffix = if ($isAdmin) { " [ADMIN]" } else { "" }
+# $Host.UI.RawUI.WindowTitle = "PowerShell {0}$adminSuffix" -f $PSVersionTable.PSVersion.ToString()
+
+# # Utility Functions
+# function Test-CommandExists {
+#   param($command)
+#   $exists = $null -ne (Get-Command $command -ErrorAction SilentlyContinue)
+#   return $exists
+# }
+
+# # Editor Configuration
+# $EDITOR = if (Test-CommandExists nvim) { 'nvim' }
+# elseif (Test-CommandExists pvim) { 'pvim' }
+# elseif (Test-CommandExists vim) { 'vim' }
+# elseif (Test-CommandExists vi) { 'vi' }
+# elseif (Test-CommandExists code) { 'code' }
+# elseif (Test-CommandExists notepad++) { 'notepad++' }
+# elseif (Test-CommandExists sublime_text) { 'sublime_text' }
+# else { 'notepad' }
+# Set-Alias -Name vim -Value $EDITOR
+
+# # System Utilities
+# function admin {
+#   if ($args.Count -gt 0) {
+#     $argList = $args -join ' '
+#     Start-Process wt -Verb runAs -ArgumentList "pwsh.exe -NoExit -Command $argList"
+#   }
+#   else {
+#     Start-Process wt -Verb runAs
+#   }
+# }
+
+# # Set UNIX-like aliases for the admin command, so sudo <command> will run the command with elevated rights.
+# Set-Alias -Name su -Value admin
+
+
+
+# Enhanced PowerShell Experience
+# Enhanced PSReadLine Configuration
 $PSReadLineOptions = @{
   EditMode                      = 'Windows'
   HistoryNoDuplicates           = $true
   HistorySearchCursorMovesToEnd = $true
   Colors                        = @{
-    Command   = '#87CEEB'
-    Parameter = '#98FB98'
-    Operator  = '#FFB6C1'
-    Variable  = '#DDA0DD'
-    String    = '#FFDAB9'
-    Number    = '#B0E0E6'
-    Type      = '#F0E68C'
-    Comment   = '#D3D3D3'
-    Keyword   = '#8367c7'
-    Error     = '#FF6347'
+    Command   = '#87CEEB'  # SkyBlue (pastel)
+    Parameter = '#98FB98'  # PaleGreen (pastel)
+    Operator  = '#FFB6C1'  # LightPink (pastel)
+    Variable  = '#DDA0DD'  # Plum (pastel)
+    String    = '#FFDAB9'  # PeachPuff (pastel)
+    Number    = '#B0E0E6'  # PowderBlue (pastel)
+    Type      = '#F0E68C'  # Khaki (pastel)
+    Comment   = '#D3D3D3'  # LightGray (pastel)
+    Keyword   = '#8367c7'  # Violet (pastel)
+    Error     = '#FF6347'  # Tomato (keeping it close to red for visibility)
   }
   PredictionSource              = 'History'
   PredictionViewStyle           = 'ListView'
@@ -517,6 +607,7 @@ $PSReadLineOptions = @{
 }
 Set-PSReadLineOption @PSReadLineOptions
 
+# Custom key handlers
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
@@ -528,6 +619,7 @@ Set-PSReadLineKeyHandler -Chord 'Ctrl+RightArrow' -Function ForwardWord
 Set-PSReadLineKeyHandler -Chord 'Ctrl+z' -Function Undo
 Set-PSReadLineKeyHandler -Chord 'Ctrl+y' -Function Redo
 
+# Custom functions for PSReadLine
 Set-PSReadLineOption -AddToHistoryHandler {
   param($line)
   $sensitive = @('password', 'secret', 'token', 'apikey', 'connectionstring')
@@ -535,9 +627,11 @@ Set-PSReadLineOption -AddToHistoryHandler {
   return ($null -eq $hasSensitive)
 }
 
+# Improved prediction settings
 Set-PSReadLineOption -PredictionSource HistoryAndPlugin
 Set-PSReadLineOption -MaximumHistoryCount 10000
 
+# Custom completion for common commands
 $scriptblock = {
   param($wordToComplete, $commandAst, $cursorPosition)
   $customCompletions = @{
@@ -564,6 +658,9 @@ $scriptblock = {
 }
 Register-ArgumentCompleter -Native -CommandName dotnet -ScriptBlock $scriptblock
 
+# ╭───────────────────────────╮
+# │ Winget argument completer │
+# ╰───────────────────────────╯
 Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
   param($wordToComplete, $commandAst, $cursorPosition)
   [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
@@ -574,17 +671,21 @@ Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
   }
 }
 
+# ╭──────────────────────────╮
+# │ Choco argument completer │
+# ╰──────────────────────────╯
+# See https://ch0.co/tab-completion for details.
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
   Import-Module "$ChocolateyProfile"
 }
 
-# ──────────────────────────────
-# REGION: PROMPT & THEMING
-# ──────────────────────────────
+# ╭─────────────────────────────────╮
+# │ Oh-My-Posh default prompt theme │
+# ╰─────────────────────────────────╯
+# oh-my-posh init pwsh | Invoke-Expression
+# oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/cobalt2.omp.json | Invoke-Expression
 oh-my-posh init pwsh --config https://github.com/JanDeDobbeleer/oh-my-posh/blob/main/themes/cloud-native-azure.omp.json | Invoke-Expression
 
-# ──────────────────────────────
-# REGION: FINAL REMINDER
-# ──────────────────────────────
+# Remind the user of the 
 Write-RBox "Run $($PSStyle.Foreground.Yellow)Show-Features$($PSStyle.Reset) to display the list of supported features."
