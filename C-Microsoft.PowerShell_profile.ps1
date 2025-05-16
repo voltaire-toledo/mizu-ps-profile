@@ -2,6 +2,8 @@
 # │ PowerShell 7.x Profile - Windows    │
 # ╰─────────────────────────────────────╯
 
+$profileLoadStart = Get-Date
+
 #region Globals...
 # Set the debug mode.  Use $DebugPreference for more control.
 $DebugPreference = 'SilentlyContinue' # Or: 'Continue', 'Stop', 'Inquire'
@@ -10,6 +12,9 @@ $Global:CanConnectToGitHub = $false # Initialize, will be set in MAIN
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 #endregion
 
+# ╭──────────────────╮
+# │ Helper Functions │
+# ╰──────────────────╯
 #region Helper Functions...
 function Write-RBox {
   <#
@@ -72,7 +77,7 @@ function Write-RBox {
     }
   }
   # Print the bottom border
-  Write-Host "$($PSStyle.Foreground.Cyan)╰$("─" * $($Spaces))$($PSStyle.Foreground.Cyan)╯"
+  Write-Host "$($BorderColor)╰$("─" * $($Spaces))╯$($RstC)"
 }
 
 function Show-Features {
@@ -90,7 +95,7 @@ function Show-Features {
         Show-Help
   #>
   # Decoration variables
-  $SecC = $PSStyle.Foreground.BrightMagenta
+  $SecC = $PSStyle.Foreground.BrightWhite
   $FunC = $PSStyle.Foreground.BrightYellow
   $ParC = $PSStyle.Foreground.Green + $PSStyle.Italic
   $RstC = $PSStyle.Reset
@@ -148,7 +153,7 @@ $($SecC)Other Functions:
   $($FunC)pst$($RstC)                 ⁝ Retrieves text from the clipboard.
   $($FunC)reload-profile$($RstC)      ⁝ Reloads the PowerShell profile.
   $($FunC)sed $($ParC){1} {2} {3}$($RstC)     ⁝ Replaces text in a file. Values are:
-                        $($ParC){1}$($RstC)  $($ParC)File$($RstC) to replace text inside it
+                        $($ParC){1}$($RstC) = $($ParC)File$($RstC) to replace text inside it
                         $($ParC){2}$($RstC) = $($ParC)String to find$($RstC) and replace
                         $($ParC){3}$($RstC) = $($ParC)String to replace$($RstC) what was found
   $($FunC)sysinfo$($RstC)             ⁝ Displays system information.
@@ -500,6 +505,10 @@ function tfa { terraform apply -auto-approve $args }
 function tfd { terraform destroy -auto-approve $args }
 
 function o { explorer.exe $args }
+
+function ll { Get-ChildItem $args -Force}
+
+Set-Alias -Name "huh" -Value Show-Features
 #endregion
 
 #region Main()
@@ -687,5 +696,10 @@ if (Test-Path($ChocolateyProfile)) {
 # oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/cobalt2.omp.json | Invoke-Expression
 oh-my-posh init pwsh --config https://github.com/JanDeDobbeleer/oh-my-posh/blob/main/themes/cloud-native-azure.omp.json | Invoke-Expression
 
-# Remind the user of the 
+# ╭─────╮
+# │ Fin │
+# ╰─────╯
+$profileLoadEnd = Get-Date
+$profileLoadDuration = $profileLoadEnd - $profileLoadStart
+Write-Host "Loaded `$PROFILE: $PROFILE in $profileLoadDuration.TotalSeconds" -ForegroundColor DarkGray
 Write-RBox "Run $($PSStyle.Foreground.Yellow)Show-Features$($PSStyle.Reset) to display the list of supported features."
