@@ -20,20 +20,12 @@ function Write-RBox {
   <#
     .SYNOPSIS
         Displays a multi-line string within a decorated box.
-
     .DESCRIPTION
-        This function takes a string, splits it into lines, and displays it
-        within a box constructed of ASCII characters.  It handles ANSI
-        escape codes for colored output and adjusts the box size to fit
-        the longest line.
-
+        Takes a string, splits it into lines, and displays it within a box constructed of ASCII characters. Handles ANSI escape codes for colored output and adjusts the box size to fit the longest line.
     .PARAMETER Text
-        The string to display within the box.  Newlines (`n) are
-        interpreted as line breaks.
+        The string to display within the box. Newlines (`n) are interpreted as line breaks.
     .PARAMETER BorderColor
-        The color of the box border.  Default is Cyan.
-        Use $PSStyle.Foreground.<ColorName> to set the color.
-
+        The color of the box border. Default is Cyan. Use $PSStyle.Foreground.<ColorName> to set the color.
     .EXAMPLE
         Write-RBox -Text "This is a test`nwith multiple lines."
   #>
@@ -84,15 +76,10 @@ function Show-Features {
   <#
     .SYNOPSIS
         Displays help information for the PowerShell profile.
-
     .DESCRIPTION
-        This function displays a formatted help message, including
-        available aliases, functions, and their descriptions.  It uses
-        the Write-RBox function to present the information in a
-        user-friendly box.
-
+        Shows a formatted help message, including available aliases, functions, and their descriptions. Uses Write-RBox to present the information in a user-friendly box.
     .EXAMPLE
-        Show-Help
+        Show-Features
   #>
   # Decoration variables
   $SecC = $PSStyle.Foreground.BrightWhite
@@ -175,6 +162,14 @@ $($SecC)Other Functions:
 # │ Update-Profile(): Update $PROFILE from GitHub │
 # ╰───────────────────────────────────────────────╯
 function Update-Profile {
+  <#
+    .SYNOPSIS
+        Updates the PowerShell profile from GitHub.
+    .DESCRIPTION
+        Downloads the latest profile script from a specified GitHub URL and replaces the current profile if it has changed.
+    .EXAMPLE
+        Update-Profile
+  #>
   try {
     $url = "https://raw.githubusercontent.com/ChrisTitusTech/powershell-profile/main/Microsoft.PowerShell_profile.ps1"
     $oldhash = Get-FileHash $PROFILE
@@ -198,37 +193,97 @@ function Update-Profile {
 
 # Edit-Profile(): Edit the $PROFILE.CurrentUserAllHosts profile
 function Edit-Profile {
+  <#
+    .SYNOPSIS
+        Opens the CurrentUserAllHosts profile for editing.
+    .DESCRIPTION
+        Launches the editor (vim) to edit the $PROFILE.CurrentUserAllHosts file.
+    .EXAMPLE
+        Edit-Profile
+  #>
   vim $PROFILE.CurrentUserAllHosts
 }
 
 # Edit-ThisProfile(): Edit the $PROFILE.CurrentUserAllHosts profile
 function Edit-ThisProfile {
+  <#
+    .SYNOPSIS
+        Opens the CurrentUserCurrentHost profile for editing.
+    .DESCRIPTION
+        Launches the editor (vim) to edit the $PROFILE.CurrentUserCurrentHost file.
+    .EXAMPLE
+        Edit-ThisProfile
+  #>
   vim $PROFILE.CurrentUserCurrentHost
 }
 #endregion
 
 #region Aliases & Functions...
 function touch($file) { 
+  <#
+    .SYNOPSIS
+        Creates a new empty file.
+    .DESCRIPTION
+        Mimics the UNIX 'touch' command by creating a new empty file or updating the timestamp if it exists.
+    .PARAMETER file
+        The name of the file to create or update.
+    .EXAMPLE
+        touch 'example.txt'
+  #>
   # touch -> Create a new empty file
   "" | Out-File $file -Encoding ASCII 
 }
 
 function ff($name) { 
+  <#
+    .SYNOPSIS
+        Finds files recursively by name.
+    .DESCRIPTION
+        Searches for files matching the specified name pattern in the current directory and subdirectories.
+    .PARAMETER name
+        The pattern to search for in file names.
+    .EXAMPLE
+        ff 'report'
+  #>
   # ff -> Find files recursively
   Get-ChildItem -recurse -filter "*${name}*" -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "$($_.FullName)" } 
 }
 
 function Get-PublicIP { 
+  <#
+    .SYNOPSIS
+        Gets the public IP address.
+    .DESCRIPTION
+        Retrieves the public IP address of the current machine using an external web service.
+    .EXAMPLE
+        Get-PublicIP
+  #>
   # Get-PublicIP -> Get the public IP address
   (Invoke-WebRequest http://ifconfig.me/ip).Content 
 }
 
 function Update-Profile { 
+  <#
+    .SYNOPSIS
+        Reloads the current user's PowerShell profile.
+    .DESCRIPTION
+        Invokes the current profile script to reload any changes made.
+    .EXAMPLE
+        Update-Profile
+  #>
   # Update-Profile -> Reload the current user's PowerShell profile
   & $profile 
 }
 
 function uptime {
+  <#
+    .SYNOPSIS
+        Displays system uptime in a *NIX-style format.
+    .DESCRIPTION
+        Calculates and displays the time since the last system boot, including days, hours, minutes, and seconds.
+    .EXAMPLE
+        uptime
+  #>
   # uptime(): *NIX-style uptime 
   # uptime(): *NIX-style uptime 
   try {
@@ -274,6 +329,14 @@ function uptime {
 }
 
 function Update-PowerShell {
+  <#
+    .SYNOPSIS
+        Updates to the latest PowerShell 7.x release.
+    .DESCRIPTION
+        Checks for the latest PowerShell release on GitHub and updates if a newer version is available.
+    .EXAMPLE
+        Update-PowerShell
+  #>
   # Update-PowerShell(): Update to the latest PowerShell 7.x release
   try {
     Write-Host "Checking for PowerShell updates..." -ForegroundColor Cyan
@@ -301,6 +364,14 @@ function Update-PowerShell {
 }
 
 function Clear-Cache {
+  <#
+    .SYNOPSIS
+        Clears Windows Prefetch, Temp, and browser cache contents.
+    .DESCRIPTION
+        Removes files from various system and user cache locations to free up space and improve performance.
+    .EXAMPLE
+        Clear-Cache
+  #>
   # Clear-Cache(): Clear Windows Prefetch, Temp and Browser cache contents
   # add clear cache logic here
   Write-Host "Clearing cache..." -ForegroundColor Cyan
@@ -325,11 +396,29 @@ function Clear-Cache {
 }
 
 function unzip ($file) {
+  <#
+    .SYNOPSIS
+        Extracts a zip file to the current directory.
+    .DESCRIPTION
+        Uses Expand-Archive to extract the specified zip file to the present working directory.
+    .PARAMETER file
+        The name of the zip file to extract.
+    .EXAMPLE
+        unzip 'archive.zip'
+  #>
   Write-Output("Extracting", $file, "to", $pwd)
   $fullFile = Get-ChildItem -Path $pwd -Filter $file | ForEach-Object { $_.FullName }
   Expand-Archive -Path $fullFile -DestinationPath $pwd
 }
 function hb {
+  <#
+    .SYNOPSIS
+        Uploads a file to a hastebin-like service.
+    .DESCRIPTION
+        Reads the contents of a file and uploads it to a pastebin service, returning the URL and copying it to the clipboard.
+    .EXAMPLE
+        hb 'script.ps1'
+  #>
   if ($args.Length -eq 0) {
     Write-Error "No file path specified."
     return
@@ -358,6 +447,18 @@ function hb {
   }
 }
 function grep($regex, $dir) {
+  <#
+    .SYNOPSIS
+        Searches for a regex pattern in files.
+    .DESCRIPTION
+        Uses Select-String to search for a regular expression in files within a directory or from pipeline input.
+    .PARAMETER regex
+        The regex pattern to search for.
+    .PARAMETER dir
+        The directory to search in. If omitted, searches pipeline input.
+    .EXAMPLE
+        grep 'pattern' 'C:\Logs'
+  #>
   if ( $dir ) {
     Get-ChildItem $dir | select-string $regex
     return
@@ -366,46 +467,170 @@ function grep($regex, $dir) {
 }
 
 function df {
+  <#
+    .SYNOPSIS
+        Displays volume information.
+    .DESCRIPTION
+        Shows information about all volumes on the system using Get-Volume.
+    .EXAMPLE
+        df
+  #>
   get-volume
 }
 
 function sed($file, $find, $replace) {
+  <#
+    .SYNOPSIS
+        Replaces text in a file.
+    .DESCRIPTION
+        Replaces all occurrences of a string in a file with another string.
+    .PARAMETER file
+        The file to perform replacements in.
+    .PARAMETER find
+        The string to find.
+    .PARAMETER replace
+        The string to replace with.
+    .EXAMPLE
+        sed 'file.txt' 'foo' 'bar'
+  #>
   (Get-Content $file).replace("$find", $replace) | Set-Content $file
 }
 
 function which($name) {
+  <#
+    .SYNOPSIS
+        Shows the path or definition of a command.
+    .DESCRIPTION
+        Uses Get-Command to display the definition or path of the specified command.
+    .PARAMETER name
+        The name of the command to look up.
+    .EXAMPLE
+        which 'git'
+  #>
   Get-Command $name | Select-Object -ExpandProperty Definition
 }
 
 function export($name, $value) {
+  <#
+    .SYNOPSIS
+        Sets an environment variable.
+    .DESCRIPTION
+        Sets or updates an environment variable for the current session.
+    .PARAMETER name
+        The name of the environment variable.
+    .PARAMETER value
+        The value to set for the environment variable.
+    .EXAMPLE
+        export 'MYVAR' 'myvalue'
+  #>
   set-item -force -path "env:$name" -value $value;
 }
 
 function pkill($name) {
+  <#
+    .SYNOPSIS
+        Kills processes by name.
+    .DESCRIPTION
+        Stops all processes matching the specified name.
+    .PARAMETER name
+        The name of the process to kill.
+    .EXAMPLE
+        pkill 'notepad'
+  #>
   Get-Process $name -ErrorAction SilentlyContinue | Stop-Process
 }
 
 function pgrep($name) {
+  <#
+    .SYNOPSIS
+        Lists processes by name.
+    .DESCRIPTION
+        Gets all processes matching the specified name.
+    .PARAMETER name
+        The name of the process to list.
+    .EXAMPLE
+        pgrep 'chrome'
+  #>
   Get-Process $name
 }
 
 function head {
+  <#
+    .SYNOPSIS
+        Displays the first n lines of a file.
+    .DESCRIPTION
+        Reads and displays the first n lines of the specified file.
+    .PARAMETER Path
+        The path to the file.
+    .PARAMETER n
+        The number of lines to display. Default is 10.
+    .EXAMPLE
+        head -Path 'file.txt' -n 5
+  #>
   param($Path, $n = 10)
   Get-Content $Path -Head $n
 }
 
 function tail {
+  <#
+    .SYNOPSIS
+        Displays the last n lines of a file.
+    .DESCRIPTION
+        Reads and displays the last n lines of the specified file, optionally following new lines as they are added.
+    .PARAMETER Path
+        The path to the file.
+    .PARAMETER n
+        The number of lines to display. Default is 10.
+    .PARAMETER f
+        Switch to follow the file as it grows (like tail -f).
+    .EXAMPLE
+        tail -Path 'file.txt' -n 20 -f
+  #>
   param($Path, $n = 10, [switch]$f = $false)
   Get-Content $Path -Tail $n -Wait:$f
 }
 
 # Quick File Creation
-function nf { param($name) New-Item -ItemType "file" -Path . -Name $name }
+function nf { 
+  <#
+    .SYNOPSIS
+        Creates a new file in the current directory.
+    .DESCRIPTION
+        Uses New-Item to create a new file with the specified name in the current directory.
+    .PARAMETER name
+        The name of the file to create.
+    .EXAMPLE
+        nf 'notes.txt'
+  #>
+  param($name) New-Item -ItemType "file" -Path . -Name $name 
+}
 
 # Directory Management
-function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
+function mkcd { 
+  <#
+    .SYNOPSIS
+        Creates and changes to a new directory.
+    .DESCRIPTION
+        Creates a new directory (if it doesn't exist) and sets it as the current location.
+    .PARAMETER dir
+        The name of the directory to create and change to.
+    .EXAMPLE
+        mkcd 'Projects'
+  #>
+  param($dir) mkdir $dir -Force; Set-Location $dir 
+}
 
 function trash($path) {
+  <#
+    .SYNOPSIS
+        Moves a file or directory to the Recycle Bin.
+    .DESCRIPTION
+        Uses the Shell.Application COM object to move the specified file or directory to the Windows Recycle Bin.
+    .PARAMETER path
+        The path to the file or directory to move to the Recycle Bin.
+    .EXAMPLE
+        trash 'oldfile.txt'
+  #>
   $fullPath = (Resolve-Path -Path $path).Path
 
   if (Test-Path $fullPath) {
@@ -440,73 +665,296 @@ function trash($path) {
 
 # Navigation Shortcuts
 function docs { 
+  <#
+    .SYNOPSIS
+        Changes to the user's Documents folder.
+    .DESCRIPTION
+        Sets the current location to the user's Documents folder.
+    .EXAMPLE
+        docs
+  #>
   $docs = if (([Environment]::GetFolderPath("MyDocuments"))) { ([Environment]::GetFolderPath("MyDocuments")) } else { $HOME + "\Documents" }
   Set-Location -Path $docs
 }
     
 function dtop { 
+  <#
+    .SYNOPSIS
+        Changes to the user's Desktop folder.
+    .DESCRIPTION
+        Sets the current location to the user's Desktop folder.
+    .EXAMPLE
+        dtop
+  #>
   $dtop = if ([Environment]::GetFolderPath("Desktop")) { [Environment]::GetFolderPath("Desktop") } else { $HOME + "\Documents" }
   Set-Location -Path $dtop
 }
 
 # Simplified Process Management
-function k9 { Stop-Process -Name $args[0] }
+function k9 { 
+  <#
+    .SYNOPSIS
+        Kills a process by name.
+    .DESCRIPTION
+        Stops the process with the specified name.
+    .EXAMPLE
+        k9 'notepad'
+  #>
+  Stop-Process -Name $args[0] 
+}
 
 # Enhanced Listing
-function la { Get-ChildItem | Format-Table -AutoSize }
-function ll { Get-ChildItem -Force | Format-Table -AutoSize }
+function la { 
+  <#
+    .SYNOPSIS
+        Lists files with details in a table format.
+    .DESCRIPTION
+        Uses Get-ChildItem and Format-Table to display files and directories in the current location.
+    .EXAMPLE
+        la
+  #>
+  Get-ChildItem | Format-Table -AutoSize 
+}
+function ll { 
+  <#
+    .SYNOPSIS
+        Lists all files (including hidden) with details in a table format.
+    .DESCRIPTION
+        Uses Get-ChildItem -Force and Format-Table to display all files and directories, including hidden ones.
+    .EXAMPLE
+        ll
+  #>
+  Get-ChildItem -Force | Format-Table -AutoSize 
+}
 
 # Git Shortcuts
-function gs { git status }
+function gs { 
+  <#
+    .SYNOPSIS
+        Shows the status of the current Git repository.
+    .DESCRIPTION
+        Runs 'git status' to display the current state of the repository.
+    .EXAMPLE
+        gs
+  #>
+  git status 
+}
 
-function ga { git add . }
+function ga { 
+  <#
+    .SYNOPSIS
+        Adds all changes to the Git staging area.
+    .DESCRIPTION
+        Runs 'git add .' to stage all changes in the current repository.
+    .EXAMPLE
+        ga
+  #>
+  git add . 
+}
 
-function gc { param($m) git commit -m "$m" }
+function gc {
+  <#
+    .SYNOPSIS
+        Commits staged changes with a message.
+    .DESCRIPTION
+        Runs 'git commit -m' with the provided message to commit staged changes.
+    .PARAMETER m
+        The commit message.
+    .EXAMPLE
+        gc -m 'Initial commit'
+  #>
+  param($m) git commit -m "$m" 
+}
 
-function gp { git push }
+function gp { 
+  <#
+    .SYNOPSIS
+        Pushes committed changes to the remote Git repository.
+    .DESCRIPTION
+        Runs 'git push' to upload local commits to the remote repository.
+    .EXAMPLE
+        gp
+  #>
+  git push 
+}
 
-function gcl { git clone "$args" }
+function gcl {
+  <#
+    .SYNOPSIS
+        Clones a Git repository.
+    .DESCRIPTION
+        Runs 'git clone' with the specified arguments to clone a repository.
+    .EXAMPLE
+        gcl 'https://github.com/user/repo.git'
+  #>
+  git clone "$args" 
+}
 
 function gcom {
-  git add .
-  git commit -m "$args"
+  <#
+    .SYNOPSIS
+        Adds, commits, and optionally pushes changes in Git.
+    .DESCRIPTION
+        Runs 'git add .', 'git commit -m', and optionally 'git push' with the provided arguments.
+    .EXAMPLE
+        gcom 'Update README'
+  #>
+  {
+    git add .
+    git commit -m "$args"
+  }
 }
 function lazyg {
-  git add .
-  git commit -m "$args"
-  git push
+  <#
+    .SYNOPSIS
+        Adds, commits, and pushes changes in Git in one step.
+    .DESCRIPTION
+        Runs 'git add .', 'git commit -m', and 'git push' with the provided arguments.
+    .EXAMPLE
+        lazyg 'Quick update'
+  #>
+  {
+    git add .
+    git commit -m "$args"
+    git push
+  }
 }
 
 # Quick Access to System Information
-function sysinfo { Get-ComputerInfo }
+function sysinfo { 
+  <#
+    .SYNOPSIS
+        Displays system information.
+    .DESCRIPTION
+        Uses Get-ComputerInfo to display detailed information about the system.
+    .EXAMPLE
+        sysinfo
+  #>
+  Get-ComputerInfo 
+}
 
 # Networking Utilities
 function flushdns {
+  <#
+    .SYNOPSIS
+        Clears the DNS client cache.
+    .DESCRIPTION
+        Runs Clear-DnsClientCache and displays a confirmation message.
+    .EXAMPLE
+        flushdns
+  #>
   Clear-DnsClientCache
   Write-Host "DNS has been flushed"
 }
 
 # Clipboard Utilities
-function cpy { Set-Clipboard $args[0] }
+function cpy { 
+  <#
+    .SYNOPSIS
+        Copies text to the clipboard.
+    .DESCRIPTION
+        Uses Set-Clipboard to copy the specified text to the clipboard.
+    .EXAMPLE
+        cpy 'Hello, world!'
+  #>
+  Set-Clipboard $args[0] 
+}
 
-function pst { Get-Clipboard }
+function pst { 
+  <#
+    .SYNOPSIS
+        Retrieves text from the clipboard.
+    .DESCRIPTION
+        Uses Get-Clipboard to get the current clipboard contents.
+    .EXAMPLE
+        pst
+  #>
+  Get-Clipboard 
+}
 
-function tf { terraform $args }
+function tf {
+  <#
+    .SYNOPSIS
+        Runs the terraform command with provided arguments.
+    .DESCRIPTION
+        Passes all arguments to the terraform CLI tool.
+    .EXAMPLE
+        tf plan
+  #>
+  terraform $args 
+}
 
-function tfi { terraform init -upgrade $args }
-# set-alias -Name "tfi"  -Value func-tfi
+function tfi {
+  <#
+    .SYNOPSIS
+        Runs 'terraform init -upgrade' with provided arguments.
+    .DESCRIPTION
+        Initializes a Terraform working directory and upgrades modules/providers.
+    .EXAMPLE
+        tfi
+  #>
+  terraform init -upgrade $args 
+}
 
-function tfp { terraform plan $args }
-# set-alias -Name "tfp"  -Value func-tfp
+function tfp {
+  <#
+    .SYNOPSIS
+        Runs 'terraform plan' with provided arguments.
+    .DESCRIPTION
+        Creates an execution plan for Terraform.
+    .EXAMPLE
+        tfp
+  #>
+  terraform plan $args 
+}
 
-function tfa { terraform apply -auto-approve $args }
-# set-alias -Name "tfa"  -Value func-tfa
+function tfa {
+  <#
+    .SYNOPSIS
+        Runs 'terraform apply -auto-approve' with provided arguments.
+    .DESCRIPTION
+        Applies Terraform changes without prompting for approval.
+    .EXAMPLE
+        tfa
+  #>
+  terraform apply -auto-approve $args 
+}
 
-function tfd { terraform destroy -auto-approve $args }
+function tfd {
+  <#
+    .SYNOPSIS
+        Runs 'terraform destroy -auto-approve' with provided arguments.
+    .DESCRIPTION
+        Destroys Terraform-managed infrastructure without prompting for approval.
+    .EXAMPLE
+        tfd
+  #>
+  terraform destroy -auto-approve $args 
+}
 
-function o { explorer.exe $args }
+function o {
+  <#
+    .SYNOPSIS
+        Opens a directory in Windows Explorer.
+    .DESCRIPTION
+        Uses explorer.exe to open the specified directory or file.
+    .EXAMPLE
+        o 'C:\Users\User\Documents'
+  #>
+  explorer.exe $args 
+}
 
-function ll { Get-ChildItem $args -Force}
+function ll {
+  <#
+    .SYNOPSIS
+        Lists files (including hidden) with details.
+    .DESCRIPTION
+        Uses Get-ChildItem -Force to list all files and directories, including hidden ones.
+    .EXAMPLE
+        ll
+  #>
+  Get-ChildItem $args -Force
+}
 
 Set-Alias -Name "huh" -Value Show-Features
 #endregion
