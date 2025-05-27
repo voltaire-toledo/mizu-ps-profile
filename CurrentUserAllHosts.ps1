@@ -313,7 +313,7 @@ oh-my-posh init pwsh --config https://raw.githubusercontent.com/JanDeDobbeleer/o
 # ╭─────╮
 # │ Fin │
 # ╰─────╯
-Write-RBox "💡TIP: Run $($PSStyle.Foreground.Yellow)Show-Features$($PSStyle.Reset) or $($PSStyle.Foreground.Yellow)huh$($PSStyle.Reset) to show what your profile provides."
+Write-RBox "💡 TIP: Run $($PSStyle.Foreground.Yellow)Show-Features$($PSStyle.Reset) or $($PSStyle.Foreground.Yellow)huh$($PSStyle.Reset) to show what your profile provides."
 $profileLoadEnd = Get-Date
 $profileLoadDuration = $profileLoadEnd - $profileLoadStart
 Write-Host "Load Duration: [$([math]::Round($profileLoadDuration.TotalMilliseconds)) ms]" -ForegroundColor DarkGray
